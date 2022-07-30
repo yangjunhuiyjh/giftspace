@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/ERC721.sol";
+import "@openzeppelin/contracts/IERC721Receiver.sol";
+import "@openzeppelin/contracts/ERC721Holder.sol";
+import "@openzeppelin/contracts/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract NftySanta is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
