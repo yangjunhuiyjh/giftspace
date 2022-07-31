@@ -44,15 +44,14 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
     mapping(address => uint256) private _num_archived_gifts;
 
     //string private _baseTokenURI;
-    uint private _presentPrice;
+    //uint private _presentPrice;
 
     // Events
     event GiftSent(uint256 tokenId);
     event GiftUnwrapped(address tokenAddress, uint256 tokenId, string message);
 
-    constructor(string memory baseTokenURI, uint giftPrice) ERC721("GiftSpace", "GIFTS") {
-        setBaseTokenURI(baseTokenURI);
-        setGiftPrice(giftPrice);
+    constructor() ERC721("GiftSpace", "GIFTS") {
+        
     }
 
     // get all the nfts of the user address that are not pending or archived
@@ -165,23 +164,23 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
     //     emit PresentSent(tokenID);
     // }
 
-    function getGiftPrice() public view returns (uint) {
-        return _giftPrice;
-    }
+    // function getGiftPrice() public view returns (uint) {
+    //     return _giftPrice;
+    // }
 
     // onlyOwner ---------------------------
 
-    function setBaseTokenURI(string memory baseTokenURI) public onlyOwner {
-        _baseTokenURI = baseTokenURI;
-    } 
+    // function setBaseTokenURI(string memory baseTokenURI) public onlyOwner {
+    //     _baseTokenURI = baseTokenURI;
+    // } 
 
     // function setUnixChristmas(uint unixChristmas) public onlyOwner {
     //     _unixChristmas = unixChristmas;
     // } 
 
-    function setGiftPrice(uint giftPrice) public onlyOwner {
-        _giftPrice = giftPrice;
-    }
+    // function setGiftPrice(uint giftPrice) public onlyOwner {
+    //     _giftPrice = giftPrice;
+    // }
 
     function withdraw(address withdrawAddress) public onlyOwner {
         uint balance = address(this).balance;
@@ -216,9 +215,6 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
         }
     }
 
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
-        return _baseTokenURI;
-    }
+    
 
 }
