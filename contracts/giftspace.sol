@@ -40,7 +40,7 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
     mapping(uint256 => Nft) private _nfts; // all the nfts on smart contract
     mapping(uint256 => Gift) private _gifts; // all the transactions that has been made
 
-    string private _baseTokenURI;
+    //string private _baseTokenURI;
     uint private _presentPrice;
 
     // Events

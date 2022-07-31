@@ -1,6 +1,14 @@
-require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
+require('@openzeppelin/hardhat-upgrades');
+require("dotenv").config();
 
-/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "0.8.0",
+  networks: {
+    rinkeby: {
+      url: process.env.MOONBEAM_URL,
+      accounts: [process.env.PRIVATE_KEY]
+    }
+  },
 };
