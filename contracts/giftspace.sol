@@ -39,6 +39,9 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
     Counters.Counter private _tokenIDs;
 
     mapping(uint256 => Gift) private _gifts; // all the transactions that have been made
+    mapping(address => uint256) private _num_current_gifts;
+    mapping(address => uint256) private _num_pending_gifts;
+    mapping(address => uint256) private _num_archived_gifts;
 
     string private _baseTokenURI;
     uint private _giftPrice;
@@ -54,12 +57,14 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
 
     // get all the nfts of the user address that are not pending or archived
     function getCurrentNfts() public view returns (Display[] memory) {
-        Display[] memory userNfts;
+        Display[] memory userNfts = new Display[](_num_current_gifts[msg.sender]);
+        uint idx = 0;
         for (uint i = 0; i < _tokenIDs.current() + 1; i++) {
             Gift memory gift = _gifts[i];
-            if (msg.sender == nft.owner){
+            if (msg.sender == gift.nft.owner){
                 if (!gift.pending && !gift.archived){
-                    userNfts.push(Display(gift.nft.tokenAddress, gift.nft.tokenID, gift.sender, gift.unlockTime, gift.message));
+                    userNfts[idx] = Display(gift.nft.tokenAddress, gift.nft.tokenID, gift.sender, gift.unlockTime, gift.message);
+                    idx += 1;
                 }
             }
         }
@@ -69,12 +74,14 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
 
     // get all the nfts that are being sent to this user
     function getPendingNfts() public view returns (Display[] memory) {
-        Display[] memory userNfts;
+        Display[] memory userNfts = new Display[](_num_pending_gifts[msg.sender]);
+        uint idx = 0;
         for (uint i = 0; i < _tokenIDs.current() + 1; i++) {
             Gift memory gift = _gifts[i];
             if (msg.sender == gift.recipient){
                 if (gift.pending){
-                    userNfts.push(Display(gift.nft.tokenAddress, gift.nft.tokenID, gift.sender, gift.unlockTime, gift.message));
+                    userNfts[idx] = Display(gift.nft.tokenAddress, gift.nft.tokenID, gift.sender, gift.unlockTime, gift.message);
+                    idx += 1;
                 }
             }
         }
@@ -83,12 +90,14 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
 
     // get all the nfts that the user received and pulled
     function getArchivedNfts() public view returns (Display[] memory) {
-        Display[] memory userNfts;
+        Display[] memory userNfts = new Display[](_num_archived_gifts[msg.sender]);
+        uint idx = 0;
         for (uint i = 0; i < _tokenIDs.current() + 1; i++) {
             Gift memory gift = _gifts[i];
-            if (msg.sender == nft.owner){
+            if (msg.sender == gift.nft.owner){
                 if (gift.archived){
-                    userNfts.push(Display(gift.nft.tokenAddress, gift.nft.tokenID, gift.sender, gift.unlockTime, gift.message));
+                    userNfts[idx] = Display(gift.nft.tokenAddress, gift.nft.tokenID, gift.sender, gift.unlockTime, gift.message);
+                    idx += 1;
                 }
             }
         }
@@ -96,12 +105,13 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
     }
 
     function wrapGift(IERC721 giftedTokenAddress, uint256 giftedTokenId, string memory message, address recipient, uint256 time) public {
-        Nft storage nft = new Nft(giftedTokenAddress, giftedTokenId, msg.sender, true); // make an nft type object
-        Gift storage gift = new Gift(nft, time, msg.sender, message, recipient, true, false); // make a gift type object with pending = true
+        Nft memory nft = Nft(giftedTokenAddress, giftedTokenId, msg.sender); // make an nft type object
+        Gift memory gift = Gift(nft, time, msg.sender, message, recipient, true, false); // make a gift type object with pending = true
         //giftedTokenAddress.safeTransferFrom(msg.sender, address(this), giftedTokenId); //nft transfer
-        _gifts[_tokenIDs] = gift; // gets stored in list of all transactions on smart contract
+        _gifts[_tokenIDs.current()] = gift; // gets stored in list of all transactions on smart contract
         //_safeMint(recipient, tokenID);
-        _tokenIDs.increment(); 
+        _tokenIDs.increment();
+        _num_pending_gifts[recipient] += 1;
     }
     
     function unwrap(uint256 tokenID) public {
@@ -112,6 +122,9 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
         require(block.timestamp >= gift.unlockTime, "Not time yet!");
         gift.nft.owner = msg.sender; // change ownership on smart contract
         gift.pending = false; // no longer pending since unwrapped
+
+        _num_pending_gifts[msg.sender] -= 1;
+        _num_current_gifts[msg.sender] += 1;
 
         emit GiftUnwrapped(address(gift.nft.tokenAddress), gift.nft.tokenID, gift.message);
     }
@@ -124,6 +137,9 @@ contract GiftSpace is ERC721, IERC721Receiver, ERC721Holder, Ownable  {
         require(!gift.archived, "Gift has already been pulled");
         gift.archived = true; // archiving the transaction
         gift.nft.tokenAddress.safeTransferFrom(address(this), gift.recipient, gift.nft.tokenID);
+
+        _num_current_gifts[msg.sender] -= 1;
+        _num_archived_gifts[msg.sender] += 1;
     }
 
      /**
